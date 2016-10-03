@@ -30,7 +30,8 @@ build/Release
 node_modules
 typings/*
 jspm_packages
-ios/NativeCMS.xcodeproj
+ios/*
+android/*
 
 # Optional npm cache directory
 .npm
