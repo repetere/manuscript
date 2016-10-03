@@ -1,0 +1,42 @@
+{
+  "login":{
+    "url":"https://pas-dev.promisefinancial.net:8885/api/jwt/token",
+    "devurl":"https://pas-development.promisefinancial.net/api/jwt/token",
+    "options":{
+      "method":"POST",
+      "headers":{
+        "Accept":"application/json",
+        "Content-Type":"application/json",
+        "clientid":"5623772d617c197f43b49eee54d41e0c",
+        "entitytype":"account"
+      }
+    }
+  },
+  "userprofile":{
+    "url":"https://pas-dev.promisefinancial.net:8885/api/jwt/profile",
+    "devurl":"https://pas-development.promisefinancial.net/api/jwt/profile",
+    "options":{
+      "method":"POST",
+      "headers":{
+        "Accept":"application/json",
+        "Content-Type":"application/json",
+        "clientid":"5623772d617c197f43b49eee54d41e0c",
+        "entitytype":"account"
+      }
+    }
+  },
+  "login_extension":{
+    "logo_dimensions":{
+      "height":200,
+      "width":200
+    },
+    "styles":{
+      "appNameBackground": {
+        "backgroundColor":"gainsboro"
+      },
+      "formBackground": {
+        "backgroundColor":"white"
+      }
+    }
+  }
+}
