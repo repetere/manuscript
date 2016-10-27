@@ -55,7 +55,8 @@ module.exports = {
   headers: { "X-Custom-Header": "yes" },
 
   output: {
-    path: path.join(__dirname, '../../public/web/output'),
+    path: path.join(__dirname, './output'),
+    // path: path.join(__dirname, '../../public/web/output'),
     filename: 'bundle.js',
   },
   plugins: [
