@@ -23,6 +23,12 @@ const pages = {
       payload: { location, },
     };
   },
+  setAppDimensions(layout) {
+    return {
+      type: constants.pages.UPDATE_APP_DIMENSIONS,
+      payload: { layout, },
+    };
+  },
   initialAppLoad(location) {
     return {
       type: constants.pages.INITIAL_APP_LOADED,

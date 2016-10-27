@@ -1,9 +1,6 @@
 import constants from '../constants';
 import { Platform, } from 'react-native';
-if (Platform.OS === 'web') {
-  require('whatwg-fetch');
-  require('babel-polyfill');
-}
+
 // import Immutable from 'immutable';
 
 const checkStatus = function (response) {

@@ -6,6 +6,7 @@ export default {
     INITIAL_APP_LOADED: 'loaded initial app state',
     RESET_APP_LOADED: 'resetting initial app state',
     ASYNCSTORAGE_KEY: 'current_view',
+    UPDATE_APP_DIMENSIONS: 'update dimensions state',
   },
   tabBarExtensions:{
     SET_EXTENSIONS_ACTION:'set tabBarExtensions',
@@ -29,9 +30,16 @@ export default {
     CLIENT_CACHE_DATA_FAILURE:'client cache data failed',
     CLIENT_CACHE_DATA_SUCCESS:'client cache data succeeded',
   },
+  messageBar:{
+    SHOW_INFO:'show info notification',
+    SHOW_ERROR:'show error notification',
+  },
   jwt_token: {
     TOKEN_NAME: `${AppConfigSettings.name}_jwt_token`,
     TOKEN_DATA: `${AppConfigSettings.name}_jwt_token_data`,
     PROFILE_JSON: `${AppConfigSettings.name}_jwt_profile`,
+  },
+  async_token: {
+    TABBAR_TOKEN: 'AppTabs',
   },
 };

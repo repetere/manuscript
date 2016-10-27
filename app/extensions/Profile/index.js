@@ -11,6 +11,7 @@ import { Button, List, ListItem, } from 'react-native-elements';  // Card, Socia
 // import * as Animatable from 'react-native-animatable';
 // const ScrollView = Animatable.createAnimatableComponent(ReactNative.ScrollView);
 import constants from '../../constants';
+// import { onLayoutUpdate, setLayoutHandler } from '../../util/dimension';
 
 
 class Profile extends Component {
@@ -20,7 +21,11 @@ class Profile extends Component {
       ranattr:'ok',
     };
   }
+  componentWillReceiveProps(nextProps) {
+    console.log('profile',{nextProps})   
+  }
   componentDidMount() {
+    // setLayoutHandler.call(this);
     Promise.all([
       AsyncStorage.getItem(constants.jwt_token.TOKEN_NAME),
       AsyncStorage.getItem(constants.jwt_token.TOKEN_DATA),
@@ -33,9 +38,11 @@ class Profile extends Component {
     .catch(err => { console.log('profile err', err); });  
   }
   render() {
-    console.log('profile list view', this.state.dataSource);
+    console.log('PROFILE RENDER this.state', this.state);
     return (
-      <View style={[ styles.scrollViewWrapperContainer, styles.statusBarPadding, ]}>
+      <View
+        // onLayout={onLayoutUpdate.bind(this)}
+        style={[ styles.scrollViewWrapperContainer, styles.statusBarPadding, ]}>
         <ScrollView style={{flex:1}} contentContainerStyle={ { paddingVertical: 20,position:'relative' }}>
           <Button
             title="Log out"

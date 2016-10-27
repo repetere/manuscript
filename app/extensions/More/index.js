@@ -4,195 +4,145 @@
  * @flow
  */
 //TO DO: https://github.com/clh161/react-native-easy-grid-view
-import React, {
-  Component
-} from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  ListView,
-  ScrollView,
-  Image,
-  Platform
-} from 'react-native';
-// import styles from '../../components/Styles/shared';
-import {
-  Button, PricingCard
-} from 'react-native-elements';
+import React, { Component, } from 'react';
+import { StyleSheet, Text, View, ListView, ScrollView, Image, Platform, TouchableHighlight, TouchableOpacity, AsyncStorage, } from 'react-native';
+import { Button, PricingCard, } from 'react-native-elements';
 import PopupDialog, { SlideAnimation } from 'react-native-popup-dialog';
+import SortableListView from 'react-native-sortable-listview';
+import styles from '../../components/Styles/shared';
+import layoutStyles from '../../components/Styles/layout';
+import Icons from '../../components/Icons';
+import constants from '../../constants';
+import { HR, H1, H2, GRID_ITEM, RESPONSIVE_GRID, RESPONSIVE_TWO_COLUMN, getGridMarginStyle, } from '../../components/LayoutElements';
+import capitalize from 'capitalize';
 
-import GridView from 'react-native-easy-grid-view';
-class Example extends Component {
-  constructor(props) {
+const moreRowStyle = StyleSheet.create({
+  touchWrapper: {
+    padding: 15, backgroundColor: 'white', borderBottomWidth: StyleSheet.hairlineWidth || 1, borderColor: 'lightgrey',
+  },
+  rowContainer: {
+    flexDirection: 'row', flex: 1, alignItems:'center', 
+  },
+  tabIconContainer: { height: 60, width: 50, marginRight: 10, justifyContent: 'center', },
+  textContainer: { justifyContent: 'center', flex: 1, },
+  reorderContainer: { height: 60, width: 70, marginLeft: 10, justifyContent: 'center', alignItems:'flex-end' },
+});
+
+
+class RowComponent extends Component{
+  render() {
+    // console.log(this.props.tabsOrder.indexOf(this.props.rowID))
+    let tabIcon = (<View style={moreRowStyle.tabIconContainer}>
+      <Icons name={this.props.data.icon.initial} size={40} style={[]} />
+    </View>);
+    let tabText = (<Text style={moreRowStyle.textContainer}>{capitalize(this.props.data.title || this.props.data.name)}</Text>);
+    let tabReorder = (Platform.OS === 'web') ? (
+      <View style={{ flexDirection:'row', }}>
+        <TouchableOpacity style={{ marginRight:10, }} onPress={() => {
+          this.props.moveTabUp(this.props.tabsOrder.indexOf(this.props.rowID));
+        } }>
+          <Icons name="ios-arrow-dropup-outline" size={30} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => {
+          this.props.moveTabDown(this.props.tabsOrder.indexOf(this.props.rowID));
+        } }>
+          <Icons name="ios-arrow-dropdown-outline" size={30} />
+        </TouchableOpacity>  
+    </View>) : (<Icons name="ios-reorder-outline" size={30} />);
+    // console.log('RowComponent this.props', this.props);
+    return (Platform.OS === 'web') ? (<View style={moreRowStyle.touchWrapper}>
+      <View style={moreRowStyle.rowContainer}>
+        {tabIcon}  
+        {tabText}  
+        <View style={moreRowStyle.reorderContainer}>
+          {tabReorder}
+        </View>
+      </View>
+    </View>) : (
+    <TouchableHighlight
+      underlayColor={'#eee'}
+      style={moreRowStyle.touchWrapper} {...this.props.sortHandlers}>
+        <View style={moreRowStyle.rowContainer}>
+          {tabIcon}  
+          {tabText}  
+          <View style={moreRowStyle.reorderContainer}>
+            {tabReorder}
+          </View>
+        </View>
+    </TouchableHighlight>);
+  }
+}
+
+class More extends Component {
+  constructor(props){
     super(props);
-    var ds = new GridView.DataSource({
-      rowHasChanged: (r1, r2) => r1 !== r2,
+    let data = {};
+    let order = [];
+    this.props.tabBarExtensions.all.forEach(tab => {
+      data[ tab.name ] = tab;
+      order.push(tab.name);
     });
     this.state = {
-      dataSource: ds.cloneWithCells([
-        {
-          text: 1,
-          backgroundColor: '#f00',
-        }, {
-          text: 2,
-          backgroundColor: '#0f0',
-        }, {
-          text: 3,
-          backgroundColor: '#00f',
-        }, {
-          text: 4,
-          backgroundColor: '#f0f',
-        }, {
-          text: 5,
-          backgroundColor: '#fff',
-        }, {
-          text: 6,
-          backgroundColor: '#000',
-        } ], 1),
-      cellWidth: 0,
-      cellHeight: 0,
+      data,
+      order,
     };
   }
-  _renderCell(cell) {
-    /**
-    <PricingCard
-  color='#4f9deb'
-  title='Free'
-  price='$0'
-  info={['1 User', 'Basic Support', 'All Core Features']}
-  button={{ title: 'GET STARTED', icon: 'flight-takeoff' }}
-/> */
+  componentWillReceiveProps(nextProps) {
+    // console.log('MORE componentWillReceiveProps ', { nextProps });
+    let data = {};
+    let order = [];
+    nextProps.tabBarExtensions.all.forEach(tab => {
+      data[ tab.name ] = tab;
+      order.push(tab.name);
+    });
+    this.setState({
+      data,
+      order,
+    });
+  }
+  moveTabDown(tabIndex) {
+    if (tabIndex + 1 !== this.state.order.length) {
+      this.state.order.splice(tabIndex+1, 0, this.state.order.splice(tabIndex, 1)[ 0 ]);
+      let newArrayOfTabExtensions = this.state.order.map(o => this.state.data[ o ]);
+      // console.log('new order', { order, newArrayOfTabExtensions, });
+      this.props.setTabExtensions(newArrayOfTabExtensions);
+      this.forceUpdate();
+    }
+  }
+  moveTabUp(tabIndex) {
+    if (tabIndex > 0) {
+      this.state.order.splice(tabIndex-1, 0, this.state.order.splice(tabIndex, 1)[ 0 ]);
+      let newArrayOfTabExtensions = this.state.order.map(o => this.state.data[ o ]);
+      // console.log('new order', { order, newArrayOfTabExtensions, });
+      this.props.setTabExtensions(newArrayOfTabExtensions);
+      this.forceUpdate();
+    }
+  }
+  render() {
+    // console.log('MORE RENDER this.state', this.state);
     return (
-      <View onLayout={event => {
-        // console.log('event.nativeEvent.layout',event.nativeEvent.layout)
-        // console.log('cell',cell)
-        var width = event.nativeEvent.layout.width;
-        if (this.state.cellWidth != width) {
-          this.setState({ cellWidth: width, });
-        }
-        if (this.state.cellHeight != width) {
-          this.setState({ cellHeight: width, });
-        }
-      } }>
-        <View style={{
-          width: this.state.cellWidth,
-          height: this.state.cellHeight,
-          justifyContent: 'center',
-          backgroundColor: cell.backgroundColor,
-        }}
-          // resizeMode={Image.resizeMode.stretch}
-          // source={cell.image}
-          >
-     <PricingCard
-  color='#4f9deb'
-  title='Free'
-  price='$0'
-  info={['1 User', 'Basic Support', 'All Core Features']}
-  button={{ title: 'GET STARTED', icon: 'flight-takeoff' }}
-/>
-          {/*}     <Text style={{
-            backgroundColor: '#0004',
-            textAlign: 'center',
-            color: '#fff',
-            fontSize: 24,
-          }}>{cell.text}</Text>
-  */}
-        </View>
+      <View style={[ styles.stretchBox, styles.statusBarPadding, styles.tabBarPadding, ]}>
+        <H1 style={{
+          borderBottomWidth: 0, padding: 10,
+          paddingBottom: 10,
+          marginBottom: 0, borderBottomColor: 'transparent',
+        }}>More Tabs</H1>  
+        <SortableListView
+          style={{ flex: 1, alignSelf:'stretch', borderTopWidth: StyleSheet.hairlineWidth || 1, borderTopColor:'lightgrey', }}
+          contentContainerStyle={(Platform.OS==='web')?layoutStyles.positionRelative:undefined}
+          data={this.state.data}
+          order={this.state.order}
+          onRowMoved={e => {
+            this.state.order.splice(e.to, 0, this.state.order.splice(e.from, 1)[ 0 ]);
+            let newArrayOfTabExtensions = this.state.order.map(o => this.state.data[ o ]);
+            // console.log('new order', { order, newArrayOfTabExtensions, });
+            this.props.setTabExtensions(newArrayOfTabExtensions);
+            // this.forceUpdate();
+          }}
+          renderRow={(row, sectionID, rowID)  => <RowComponent sectionID={sectionID} rowID={rowID} data={row} moveTabDown={this.moveTabDown.bind(this)} moveTabUp={this.moveTabUp.bind(this)} tabsOrder={this.state.order} />}
+        />
       </View>
     );
   }
-  render() {
-    return (
-      <ScrollView style={{
-        flex: 1,
-        alignSelf: 'stretch',
-        flexDirection: 'column',
-        padding: 8,
-      }}
-      contentContainerStyle={{
-        paddingVertical: 20,
-        position: 'relative',
-      }}>
-        <View style={{
-          flex: 1,
-          alignSelf: 'stretch',
-        }}>
-          
-          <Button
-            title="Open Dialog"
-            onPress={() => {
-              this.popupDialog.openDialog();
-            }}
-          />
-          <PricingCard
-            color='#4f9deb'
-            title='Free'
-            price='$0'
-            info={['1 User', 'Basic Support', 'All Core Features']}
-            button={{
-              title: 'GET STARTED', icon: 'flight-takeoff',
-            }}
-            />
-          <Text>grid view</Text>
-          <Text>grid view</Text>
-          <Text>grid view</Text>
-          <Text>grid view</Text>
-        </View>
-        <View style={{
-          flex: 1,
-          alignSelf: 'stretch',
-        }}>
-          <GridView dataSource={this.state.dataSource}
-            spacing={8}
-            horizontal={true}
-            style={{
-              padding: 0,
-            }}
-            renderCell={this._renderCell.bind(this) } />
-        </View>
-
-
-          <PopupDialog
-            ref={(popupDialog) => { this.popupDialog = popupDialog; }}
-            dialogAnimation = { new SlideAnimation({ slideFrom: 'bottom' }) }
-          >
-            <View>
-              <Text>Hello</Text>
-            </View>
-          </PopupDialog>
-      </ScrollView>
-    );
-  }
 }
-// class More extends Component {
-//   constructor(){
-//     super(...arguments);
-//     this.state = {
-//       ranattr:'ok',
-//     };
-//   }
-//   render() {
-//     return (
-//       <View style={ styles.container }>
-//         <Text style={ styles.heading }>In the apps app</Text>		
-//         <Button
-//           small
-//           iconRight
-//           icon={{ name: 'code', }}
-//           title="Code" />
-//         <Button
-//           small
-//           iconRight
-//           icon={{ name: 'share-apple',  type: 'evilicon', }}
-//           title="Share Apple" />
-//         <Button
-//           small
-//           iconRight
-//           icon={{ name: 'battery-full',  type: 'foundation', }}
-//           title="Battery Full" />
-//       </View>
-//     );
-//   }
-// }
-export default Example;
+export default More;

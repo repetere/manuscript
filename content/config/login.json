@@ -1,26 +1,26 @@
 {
   "login":{
-    "url":"https://pas-dev.promisefinancial.net:8885/api/jwt/token",
-    "devurl":"https://pas-development.promisefinancial.net/api/jwt/token",
+    "url":"https://localhost:8786/api/jwt/token",
+    "devurl":"https://localhost:8786/api/jwt/token",
     "options":{
       "method":"POST",
       "headers":{
         "Accept":"application/json",
         "Content-Type":"application/json",
-        "clientid":"5623772d617c197f43b49eee54d41e0c",
+        "clientid":"clientIDNEEDED",
         "entitytype":"account"
       }
     }
   },
   "userprofile":{
-    "url":"https://pas-dev.promisefinancial.net:8885/api/jwt/profile",
-    "devurl":"https://pas-development.promisefinancial.net/api/jwt/profile",
+    "url":"https://localhost:8786/api/jwt/profile",
+    "devurl":"https://localhost:8786/api/jwt/profile",
     "options":{
       "method":"POST",
       "headers":{
         "Accept":"application/json",
         "Content-Type":"application/json",
-        "clientid":"5623772d617c197f43b49eee54d41e0c",
+        "clientid":"clientIDNEEDED",
         "entitytype":"account"
       }
     }

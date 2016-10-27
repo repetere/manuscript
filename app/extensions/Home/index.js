@@ -15,8 +15,6 @@ import {
 } from 'react-native';
 import styles from '../../components/Styles/shared';
 import gridStyles from '../../components/Styles/gridView';
-import 'whatwg-fetch';
-import 'babel-polyfill';
 import {
   Button,
   List,

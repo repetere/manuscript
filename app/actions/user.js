@@ -4,10 +4,7 @@ import AppConfigSettings from '../../content/config/settings.json';
 import { AsyncStorage, } from 'react-native';
 import pageActions from './pages';
 import { Platform, } from 'react-native';
-if (Platform.OS === 'web') {
-  require('whatwg-fetch');
-  require('babel-polyfill');
-}
+
 // import Immutable from 'immutable';
 
 const checkStatus = function (response) {

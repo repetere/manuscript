@@ -28,9 +28,12 @@ class Icon extends Component {
     let passProps = Object.assign({}, this.props);
     delete passProps.icontype;
     // let iconColor = (this.props.selected) ? colorStyles.active : colorStyles.nav;
-    return (
-      <IconComponent {...passProps} />
-    );
+    if (this.props.button) {
+      delete passProps.button;
+      return ( <IconComponent.Button {...passProps} /> );
+    } else {
+      return ( <IconComponent {...passProps} /> );
+    }
   }
 }
 

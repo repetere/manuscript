@@ -20,6 +20,9 @@ let webFixes = (Platform.OS === 'web') ? {
     overflow: 'auto',
     display: 'block',
   },
+  statusBarPadding: {
+    paddingTop:0,
+  },
 } : {};
 
 const styles = StyleSheet.create(Object.assign({
@@ -40,15 +43,21 @@ const styles = StyleSheet.create(Object.assign({
     position: 'relative',
     marginBottom: 60,
   },
+  scrollViewHorizontal: {
+    flexDirection: 'row',
+  },
   scrollViewWrapperContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
-    marginBottom: 60,
+    paddingBottom: 60,
   },
   statusBarPadding: {
     paddingTop:20,
+  },
+  tabBarPadding: {
+    paddingBottom:60,
   },
   appContainer: {
     flex: 1,
@@ -98,7 +107,8 @@ const styles = StyleSheet.create(Object.assign({
     backgroundColor:'whitesmoke',
     borderTopWidth:1,
     borderTopColor:'lightgray',
-    height:60,
+    height: 60,
+    zIndex:100,
   },
   tabBarText:{
     fontSize:12,

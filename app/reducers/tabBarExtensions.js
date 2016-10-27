@@ -7,7 +7,10 @@ const EXTENSIONS = Object.assign(AppConfigExtensions, CustomExtensions);
 const getIntialTabs = () =>{
   let tabs = EXTENSIONS.standard.concat();//.splice(3, 0, EXTENSIONS.more);
   tabs.splice(4, 0, EXTENSIONS.more).slice(0, 4);
-  return tabs.slice(0, 5);
+  return {
+    current: tabs.slice(0, 5),
+    all: EXTENSIONS.standard.concat(),
+  }; 
 };
 
 const initialState = getIntialTabs();
@@ -16,8 +19,13 @@ const initialState = getIntialTabs();
 const tabBarExtensionsReducer = (state = initialState, action) => {
   switch (action.type) {
   case constants.tabBarExtensions.SET_EXTENSIONS_ACTION:
-    var arrayOfTabExtensions = action.payload.arrayOfTabExtensions;
-    return Object.assign(state, arrayOfTabExtensions).slice(0, 5);
+    let arrayOfTabExtensions = action.payload.arrayOfTabExtensions.concat();
+    arrayOfTabExtensions.splice(4, 0, EXTENSIONS.more);
+    console.log('updated ', { arrayOfTabExtensions });  
+    return {
+      all: action.payload.arrayOfTabExtensions,
+      current: arrayOfTabExtensions.splice(0,5),
+    };
   default:
     return state;
   }

@@ -1,47 +1,11 @@
 {
   "standard" : [{
-    "name":"pipelines",
-    "path":"/pipelines",
+    "name":"home",
+    "title":"For You",
+    "path":"/",
     "icon":{
-      "selected":"ios-git-network",
-      "initial":"ios-git-network-outline"
-    }
-  },{
-    "name":"stats",
-    "path":"/stats",
-    "icon":{
-      "selected":"ios-pulse",
-      "initial":"ios-pulse-outline"
-    }
-  },{
-    "name":"credit",
-    "path":"/credit",
-    "title":"Credit Parser",
-    "icon":{
-      "selected":"logo-snapchat",
-      "initial":"logo-snapchat"
-    }
-  },{
-    "name":"profile",
-    "path":"/profile",
-    "icon":{
-      "selected":"ios-contact",
-      "initial":"ios-contact-outline"
-    }
-  },{
-    "name":"settings",
-    "path":"/settings",
-    "icon":{
-      "selected":"ios-settings",
-      "initial":"ios-settings-outline"
-    }
-  },{
-    "name":"csv output",
-    "path":"/csv",
-    "icon":{
-      "selected":"flash",
-      "initial":"flash",
-      "type":"FontAwesome"
+      "selected":"ios-outline-home",
+      "initial":"ios-home-outline"
     }
   }],
   "more":{

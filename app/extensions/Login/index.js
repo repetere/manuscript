@@ -64,6 +64,10 @@ class Login extends Component {
   constructor(){
     super(...arguments);
   }
+  sendFormToLogin(eventMethod) {
+    console.log('sendFormToLogin',{ eventMethod, }, 'this.refs', this.refs);
+  }
+  
   render() {
     // console.log('LOGIN this.props',this.props);
     return (
@@ -74,22 +78,22 @@ class Login extends Component {
         </View>
         <View style={[ loginStyles.halfHeight, loginStyles.formBackground, { alignItems: 'center', justifyContent: 'center', }]}>
           <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width:400, }}>
-            <Form error={this.props.user.error}
+            <Form ref="loginForm" error={this.props.user.error}
             submitFunction={this.props.loginUser}
-            formElements={[
-              <FormLabel>Email / Username</FormLabel>,
-              <FormInput name="username" placeholder="Please enter your username or email" selectTextOnFocus={true} autoCapitalize="none" formTextChange={true} returnKeyType="next" />,
-              <FormLabel>Password</FormLabel>,
-              <FormInput name="password" placeholder="Please enter your Password" secureTextEntry={true}  formTextChange={true} returnKeyType="next"/>,
-              // <Switch
-              //   // onValueChange={(value) => this.setState({falseSwitchIsOn: value})}
-              //   formSwitchChange="true"
-              //   name="rememberme"
-              //   // style={{marginBottom: 10}}
-              //   value={false}
-              //   />,
-              <Button title="Login" submitOnPress="true" />,
-            ]}/>  
+              >
+              <FormLabel>Email / Username</FormLabel>
+              <FormInput name="username" placeholder="Please enter your username or email" selectTextOnFocus={true} autoCapitalize="none" formTextChange={true} returnKeyType="next" />
+              <FormLabel>Password</FormLabel>
+              <FormInput name="password" placeholder="Please enter your Password" secureTextEntry={true}  formTextChange={true} returnKeyType="done"
+                onSubmitEditing={() => {
+                  this.sendFormToLogin.call(this, 'onSubmitEditing');
+                } }
+                onEndEditing={() => {
+                  this.sendFormToLogin.call(this, 'onEndEditing');
+                } }
+                containerStyle={{ marginBottom: 10, }}/>
+              <Button title="Login" submitOnPress="true" />
+            </Form>
           </View>  
           
         </View>

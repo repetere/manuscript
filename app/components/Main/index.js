@@ -4,7 +4,7 @@
  * @flow
  */
 import React, { Component, PropTypes, } from 'react';
-import { View, Platform, AsyncStorage, Navigator, } from 'react-native';
+import { View, Platform, AsyncStorage, Navigator, Text, } from 'react-native';
 import { Router, Route, /*browserHistory, hashHistory, createMemoryHistory,*/ } from 'react-router';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Tabs from 'react-native-tabs';
@@ -24,17 +24,21 @@ import actions from '../../actions';
 import constants from '../../constants';
 import { historySettings, getHistory, } from '../../routers/history';
 import { getComponentFromRouterLocation, getTabFromLocation, getRouteExtensionFromLocation, } from '../../util/location';
+import { onLayoutUpdate, setLayoutHandler } from '../../util/dimension';
 import pathToRegexp from 'path-to-regexp';
 import { Area, AreaList, scene, Side, SceneStatus, } from 'scene-router';
-
+import { MessageBarManager, MessageBar, } from '../MessageBar';
+import moment from 'moment';
+import debounce from 'debounce';
 const history = getHistory(historySettings, AppConfigSettings, store);
 // const LoadingIndicators = (Platform.OS === 'web') ? ActivityIndicatorIOS : ActivityIndicator;
 const defaultExtensionRoute = AppConfigSettings.defaultExtensionRoute || '/';
+let initialRouteChange = false;
 
 class MainApp extends Component{
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = props;
     this.previousRoute = {};
   }
   componentWillMount() {
@@ -44,11 +48,58 @@ class MainApp extends Component{
     */
     let pageLocation = this.props.location.pathname;
     if (pageLocation !== defaultExtensionRoute) {
-      this.props.onChangePage(pageLocation);
+      this.props.onChangePage(pageLocation,{config:{onAppStart:true,}});
     }
   }
   componentWillReceiveProps(nextProps) {
-    // console.log('nextProps', nextProps);
+    // console.log('MAIN componentWillReceiveProps', { nextProps, });
+    if (nextProps.user.isLoggedIn !== true && (this.getCurrentScenePath() !== '/login' || this.state.location.pathname !== '/login')) {
+      this.onChangeExtension.call(this, '/login', {
+        initialLoad: 'recievedPropLogin',
+        loginStatus: this.state.user.isLoggedIn,
+        config: {
+          transitionDirection:'top',
+        },
+      });
+    } else if (nextProps.user.isLoggedIn === true && this.getCurrentScenePath() === '/login' && this.getCurrentScenePath() !== defaultExtensionRoute && nextProps.location.pathname !== defaultExtensionRoute) {
+      this.onChangeExtension(defaultExtensionRoute, {
+        initialLoad: 'recievedPropLogin',
+        loginStatus: this.state.user.isLoggedIn,
+        config: {
+          transitionDirection:'bottom',
+        },
+      });
+    }
+    else if (initialRouteChange===false && Platform.OS ==='web' && nextProps.user.isLoggedIn === true && this.getCurrentScenePath() !== nextProps.location.pathname) {
+      // console.log('HANDLE BROWSER NAV')
+      initialRouteChange = true;
+      this.onChangeExtension(nextProps.location.pathname, {
+        initialLoad: 'recievedPropLogin',
+        loginStatus: this.state.user.isLoggedIn,
+        config: {
+          transitionDirection:'bottom',
+        },
+      });
+    }
+    else if (Platform.OS !=='web' && initialRouteChange===false && nextProps.user.isLoggedIn === true && nextProps.page.initial_app_state_loaded === true){
+      initialRouteChange = true;
+      // console.log('CHANGE INITAL ROUTE, current route',this.getCurrentScenePath())
+      this.onChangeExtension(defaultExtensionRoute, {
+        initialLoad: 'recievedPropLogin',
+        loginStatus: this.state.user.isLoggedIn,
+        config: {
+          transitionDirection:'bottom',
+        },
+      });
+    }
+    else {
+      // console.log('NOT DEALING WITH LOGIN')
+    }
+    // 
+    this.setState(nextProps);
+    // console.log('COMPONENT WILL RECIEVE PROPS');
+
+    // console.log('componentWillReceiveProps nextProps', nextProps);
     /**
      *THIS WILL HANDLE BROWSER NAVIGATION
     */
@@ -57,18 +108,28 @@ class MainApp extends Component{
     //   this.props.onChangePage(incomingAppFromLocation);
     // }
     // this.loadExtensionRoute(nextProps.location.pathname);
+    // if (this.refs.AlertNotification) {
+    //   if (!MessageBarManager.getRegisteredMessageBar()) {
+    //     MessageBarManager.registerMessageBar(this.refs.AlertNotification);
+    //   }
+    //   MessageBarManager.showAlert(nextProps.messageBar);
+    // }   
   }
   componentDidMount() {
+    setLayoutHandler.call(this);
     // console.log('componentDidMount this.props', this.props);
     Promise.all([
       AsyncStorage.getItem(constants.jwt_token.TOKEN_NAME),
       AsyncStorage.getItem(constants.jwt_token.TOKEN_DATA),
       AsyncStorage.getItem(constants.jwt_token.PROFILE_JSON),
+      AsyncStorage.getItem(constants.async_token.TABBAR_TOKEN),
     ])
       .then((results) => {
         let jwt_token = results[ 0 ];
         let jwt_token_data = JSON.parse(results[ 1 ]);
         let jwt_user_profile = JSON.parse(results[ 2 ]);
+        let appTabs = (results[ 3 ]) ? JSON.parse(results[ 3 ]) : false;
+        console.log('main apptabs',{ appTabs });
         if (jwt_token_data && jwt_user_profile) {
           let url = AppLoginSettings.login.url;
           let response = {};
@@ -78,7 +139,20 @@ class MainApp extends Component{
             timeout: jwt_token_data.timeout,
             user: jwt_user_profile,
           };
-          this.props.saveUserProfile(url, response, json);
+          let currentTime = new Date();
+          
+          if (moment(jwt_token_data.expires).isBefore(currentTime)) {
+            let expiredTokenError = new Error(`Access Token Expired ${moment(jwt_token_data.expires).format('LLLL')}`);
+            setTimeout(() => {
+              this.handleErrorNotification({ message: 'Access Token Expired' + expiredTokenError, }, expiredTokenError);
+            }, 1000);
+            throw expiredTokenError;
+          } else {
+            this.props.saveUserProfile(url, response, json);
+            if (appTabs) {
+              this.props.setTabExtensions(appTabs);
+            }
+          }
         } else if(jwt_token) {
           this.props.getUserProfile(jwt_token);
         }
@@ -94,11 +168,24 @@ class MainApp extends Component{
         console.log('MAIN componentDidMount: JWT USER Login Error.', error);
         this.props.logoutUser();
       });
+    setImmediate(() => {
+      // MessageBarManager.hideAlert();
+      MessageBarManager.registerMessageBar(this.refs.AlertNotification);
+      // MessageBarManager.hideAlert();
+    });
+  }
+  componentWillUnmount() {
+    // Remove the alert located on this master page from the manager
+    setImmediate(() => {
+      MessageBarManager.hideAlert();
+      MessageBarManager.unregisterMessageBar();
+    });
   }
   onChangeScene(el, options) {
     this.onChangeExtension(el.props.path, options);
   }
-  onChangeExtension(path, options) {
+  onChangeExtension(path, options = {}) {
+    // console.log('onChangeExtension',{path},{options})
     let pageLocation = this.props.location.pathname;
     if (pageLocation !== defaultExtensionRoute) {
       this.previousRoute = { path:pageLocation, };
@@ -108,19 +195,48 @@ class MainApp extends Component{
     } else {
       this.context.router.push(path);
     }
-    this.loadExtensionRoute(path, options);
+    if(!options.skipSceneChange){
+      this.loadExtensionRoute(path, options);
+    }
+  }
+  getCurrentScenePath() {
+    if (this.refs && this.refs.AppNavigator) {
+      return this.refs.AppNavigator.state.paths.slice(-1)[ 0 ];
+    } else{
+      return null;
+    }
+  }
+  handleErrorNotification(options, error) {
+    console.log({ error, });
+    let notificationProps = Object.assign({
+      messageStyle:{margin:5, color:'white'},
+      titleStyle:{margin:5,},
+      // title: 'Error creating Engine',
+      alertType: 'error',
+    }, options);
+    MessageBarManager.showAlert(notificationProps);
   }
   loadExtensionRoute(path, options = {}) {
-    // console.log('loadExtensionRoute ', { path }, { options }, this.previousRoute, this.refs.AppNavigator);
-
+    // console.log('loadExtensionRoute ',
+    //   { path, },
+    //   { options, } //,
+    //   // 'this.props.location', this.props.location,
+    //   // 'this.refs.AppNavigator', this.refs.AppNavigator,
+    // );
+    // console.log('this.props', this.props);
+    // console.log('this.getCurrentScenePath()', this.getCurrentScenePath());
     // window.appnav = this.refs.AppNavigator;
-    
+    if (!MessageBarManager.getRegisteredMessageBar()) {
+      MessageBarManager.registerMessageBar(this.refs.AlertNotification);
+      // MessageBarManager.hideAlert();
+      window.MessageBarManager = MessageBarManager;
+    }
     /*
     if (options && options.config && options.config.action === 'goToPreviousExtension') {
       console.log('ABOUT TO GO BACK');
       this.refs.AppNavigator.goback();
     } else */
-    if (!this.props.location || this.props.location.pathname !== path || (this.refs && this.refs.AppNavigator && this.refs.AppNavigator.state.paths.length === 0)) {
+    if ( path!==this.getCurrentScenePath()  && (!this.state.location || this.state.location.pathname !== path) || (this.refs && this.refs.AppNavigator && this.refs.AppNavigator.state.paths.length === 0)) {
         
       let location = path || '/home';//'/stats/items/3423242';
       let matchedRoute = false;
@@ -186,90 +302,86 @@ class MainApp extends Component{
             break;
           }
         }
-
-        
       }      
 
-      if (this.refs.AppNavigator) {
+      if (this.refs.AppNavigator && navigationRoute !== this.getCurrentScenePath()) {
+        // console.log('CHANGE NEW SCENE from',this.getCurrentScenePath(), {path}, { navigationRoute }, { navigatorOptions });
         this.refs.AppNavigator.goto(navigationRoute, {
           props: Object.assign({},
-            this.props,
+            this.state,
             passProps,
             {
               onChangeExtension: this.onChangeExtension.bind(this),
               loadExtensionRoute: this.loadExtensionRoute.bind(this),
-              goToPreviousExtension: this.onChangeExtension.bind(this, path, Object.assign({},
-                options, {
-                  config: Object.assign(backNavigatorOptions, {
-                    action:'goToPreviousExtension',
-                  }),
-                }
-              )),
-              previousPath: path,
-              previousOptions: options,
+              handleErrorNotification: this.handleErrorNotification.bind(this),
+              MessageBarManager,
             }),
           opts: navigatorOptions,
         });
+      } else {
+        console.log('SKIPPIPNG APP NAVIGATOR, ALREADY ON SCENE PATH');
       }
+      // // console.log('this.props.showInfo',this.props.showInfo)
+      // // this.props.showInfo({ title: 'new page', message: 'time stamp ' + new Date(), });
+      // if (this.refs.AlertNotification) {
+      //   MessageBarManager.showAlert({title:'some titile', message: 'time stamp ' + new Date(), });
+      // }  
     } else {
-      // console.log('skipping componet update');
+      console.log('skipping componet update', { path, }, 'this.getCurrentScenePath()', this.getCurrentScenePath());
     }
   }
-  componentWillUpdate (nextProps, nextState){
-    // console.log('COMPONENT WILL UPDATE', { nextProps }, { nextState })
-    this.loadExtensionRoute(nextProps.location.pathname);
+  componentWillUpdate(nextProps, nextState) {
+    // console.log('COMPONENT WILL UPDATE');
+    // console.log('COMPONENT WILL UPDATE',{refs:this.refs}, { nextProps }, { nextState })
+    // this.loadExtensionRoute(nextProps.location.pathname);
     // perform any preparations for an upcoming update
   }
   render() {
-    console.log('RENDER getRouteExtensionFromLocation(this.props.location.pathname)', getRouteExtensionFromLocation(this.props.location.pathname), 'this.props.location.pathname', this.props.location.pathname);
-    let displayContent = (
-      <View style={[styles.container,]}>
-        {/*<CurrentApp {...this.props}  />*/}
-        <View style={styles.stretchContainer}>
-          <Area
-            ref="AppNavigator"
-            style={styles.stretchBox}
-            onLoad={this.loadExtensionRoute.bind(this, (this.props.location)?this.props.location.pathname:'/')}
-            >
-            <LoadingView/>
-          </Area>
-        </View>
-        <Tabs 
-          style={styles.tabBar}>
-            {this.props.tabBarExtensions.map((ext)=>{
-              return (<TabIcon 
-                {...ext}  
-                key={ext.name} 
-                ext={ext}  
-                location={this.props.location}
-                location_path={getRouteExtensionFromLocation(this.props.location.pathname)}
-                selected={getRouteExtensionFromLocation(this.props.location.pathname)===ext.path}
-                // changePage={this.onChangeScene.bind(this)}
-                onSelect={this.onChangeScene.bind(this)}
-                />);
-            })}
-        </Tabs>
+    // console.log(
+    //   'MAIN RENDER',
+    // //   'RENDER getRouteExtensionFromLocation(this.props.location.pathname)',
+    // //   getRouteExtensionFromLocation(this.props.location.pathname),
+    // //   'this.props.location.pathname',
+    // //   this.props.location.pathname,
+    // //   // 'this.props', this.props //,
+    //   'this.state', this.state//,
+    // );
+
+    // console.log('this.state.user.isLoggedIn', this.state.user.isLoggedIn);
+    let initialPath = (this.state.location) ? this.state.location.pathname : '/';
+
+    return (<View
+      onLayout={onLayoutUpdate.bind(this)}
+      style={[ styles.container, { backgroundColor: 'white' }]}
+      >
+      {/*<CurrentApp {...this.state}  />
+      <Text style={{ backgroundColor:'darkgray', color:'white', padding:20, position:'absolute', top:20, left:20, zIndex:1000}}>{JSON.stringify(this.state.page.layout,null,2)}</Text>*/}
+      <View style={styles.stretchContainer}>
+        <Area
+          ref="AppNavigator"
+          style={styles.stretchBox}
+          >
+          <LoadingView/>
+        </Area>
       </View>
-    );
-    let displayLogin = (
-      <View style={[styles.container,]}>
-        <AppExtensions.Login {...this.props}  />
-      </View>
-    );
-    let displayLoading = (
-      <LoadingView/>
-    );
-    // console.log('MAIN APP: this.props', this.props);
-    if (this.props.page.initial_app_state_loaded === false) {
-      // console.log('MAIN APP: this.props.page.initial_app_state_loaded', this.props.page.initial_app_state_loaded);
-      return displayLoading;
-    } else if (this.props.user.isLoggedIn) {
-      // console.log('MAIN APP: this.props.user.isLoggedIn', this.props.user.isLoggedIn);
-      return displayContent;
-    } else {
-      // console.log('MAIN APP: displayLogin');
-      return displayLogin;      
-    }
+      {(this.state.user.isLoggedIn===true)? (<Tabs
+        style={styles.tabBar}>
+        {this.state.tabBarExtensions.current.map((ext) => {
+          return (<TabIcon
+            {...ext}
+            key={ext.name}
+            ext={ext}
+            location={this.state.location}
+            location_path={getRouteExtensionFromLocation(this.state.location.pathname) }
+            selected={getRouteExtensionFromLocation(this.state.location.pathname) === ext.path}
+            // changePage={this.onChangeScene.bind(this)}
+            onSelect={this.onChangeScene.bind(this) }
+            />);
+        }) }
+      </Tabs>) : null}
+      
+      <MessageBar ref="AlertNotification" />
+    </View>);
   }
 }
 MainApp.contextTypes = {
@@ -282,6 +394,7 @@ const mapStateToProps = (state) => {
     user: state.user,
     tabBarExtensions: state.tabBarExtensions,
     fetchData: state.fetchData,
+    messageBar: state.messageBar,
   };
 };
 
@@ -289,7 +402,11 @@ const mapDispatchToProps = (dispatch) => {
   return {
     initialAppLoaded:()=>store.dispatch(actions.pages.initialAppLoaded()),
     onChangePage:(location) => store.dispatch(actions.pages.changePage(location)),
+    setAppDimensions:(layout) => store.dispatch(actions.pages.setAppDimensions(layout)),
     requestData: (url, options, responseFormatter) => store.dispatch(actions.fetchData.request(url, options, responseFormatter)),
+    setTabExtensions: (arrayOfTabExtensions)=>store.dispatch(actions.tabBarExtension.setTabExtensions(arrayOfTabExtensions)),
+    showError: (notification) => store.dispatch(actions.messageBar.showError(notification)),
+    showInfo: (notification) => store.dispatch(actions.messageBar.showInfo(notification)),
     setLoginStatus: (loggedIn) => store.dispatch(actions.user.setLoginStatus(loggedIn)),
     getUserProfile: (jwt_token) => store.dispatch(actions.user.getUserProfile(jwt_token)),
     saveUserProfile: (url, response, json) => store.dispatch(actions.user.saveUserProfile(url, response, json)),
@@ -299,7 +416,6 @@ const mapDispatchToProps = (dispatch) => {
 };
 
 const MainAppContainer = connect(mapStateToProps, mapDispatchToProps)(MainApp);
-
 
 class Main extends Component{
   render() {
