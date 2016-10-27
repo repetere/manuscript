@@ -45,7 +45,7 @@ module.exports = {
   ],
   devServer: {
     headers: {
-      'Access-Control-Allow-Origin': 'https://pas-dev.promisefinancial.net:8885',
+      'Access-Control-Allow-Origin': 'https://localhost:8786',
       'customheaderyaw':'etse',
       // "Access-Control-Allow-Origin": "http://localhost:4000",
       // 'Access-Control-Allow-Credentials': 'true',
@@ -73,7 +73,7 @@ module.exports = {
       React: 'react',
     }) : new webpack.HotModuleReplacementPlugin({
       headers: {
-        'Access-Control-Allow-Origin': 'https://pas-dev.promisefinancial.net:8885',
+        'Access-Control-Allow-Origin': 'https://localhost:8786',
         'customheaderyaw':'etse',
         // "Access-Control-Allow-Origin": "http://localhost:4000",
         // 'Access-Control-Allow-Credentials': 'true',
