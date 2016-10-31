@@ -150,7 +150,7 @@ function getDataForLists(config, options = {}) {
       stateDataProp[ config.componentStateDataName ] = stateData;
       
       this.setState({
-        GroupListDetailStateData: Object.assign(this.state.GroupListDetailStateData, stateDataProp),
+        GroupListDetailStateData: Object.assign({}, this.state.GroupListDetailStateData, stateDataProp),
       });
       resolve(responseData);
     })
@@ -163,7 +163,7 @@ function getDataForLists(config, options = {}) {
       stateDataProp[config.componentStateDataName] = stateData;
 
       this.setState({
-        GroupListDetailStateData: Object.assign(this.state.GroupListDetailStateData, stateDataProp),
+        GroupListDetailStateData: Object.assign({}, this.state.GroupListDetailStateData, stateDataProp),
       });
       reject(error);
       this.props.handleErrorNotification({ message:'Could not update '+pluralize(stateData.selectedGroup)+'. '+error, }, error);
@@ -657,9 +657,9 @@ class GroupListDetail extends Component {
     if (nextProps.GroupListDetailStateData) {
       this.setState({
         GroupListDetailStateData: {
-          groupData: Object.assign(this.state.GroupListDetailStateData.groupData, nextProps.GroupListDetailStateData.groupData),
-          listData: Object.assign(this.state.GroupListDetailStateData.listData, nextProps.GroupListDetailStateData.listData),
-          detailData: Object.assign(this.state.GroupListDetailStateData.detailData, nextProps.GroupListDetailStateData.detailData),
+          groupData: Object.assign({}, this.state.GroupListDetailStateData.groupData, nextProps.GroupListDetailStateData.groupData),
+          listData: Object.assign({}, this.state.GroupListDetailStateData.listData, nextProps.GroupListDetailStateData.listData),
+          detailData: Object.assign({}, this.state.GroupListDetailStateData.detailData, nextProps.GroupListDetailStateData.detailData),
           selectedGroup: this.state.GroupListDetailStateData.selectedGroup,
           showGroupSidebar: this.state.GroupListDetailStateData.showGroupSidebar,
         },
@@ -669,7 +669,7 @@ class GroupListDetail extends Component {
   setDetailData(data) {
     // console.log('SET DETAIL DATA', { data });
     let mergedDetailData = Object.assign({}, this.state.GroupListDetailStateData.detailData, this.props.GroupListDetail.entities[ this.state.GroupListDetailStateData.selectedGroup ].detail, data);
-    let GroupListDetailStateData = Object.assign(this.state.GroupListDetailStateData, { detailData: mergedDetailData, });
+    let GroupListDetailStateData = Object.assign({}, this.state.GroupListDetailStateData, { detailData: mergedDetailData, });
     // console.log('SET DETAIL ',{GroupListDetailStateData})
     this.setState({
       GroupListDetailStateData,
@@ -697,11 +697,11 @@ class GroupListDetail extends Component {
   showGroupSidebar(shouldShowGroupSidebar, selectedGroup) {
     // console.log({ shouldShowGroupSidebar, selectedGroup, });
     let newState = {
-      GroupListDetailStateData: Object.assign(this.state.GroupListDetailStateData, { showGroupSidebar: shouldShowGroupSidebar, }),
+      GroupListDetailStateData: Object.assign({}, this.state.GroupListDetailStateData, { showGroupSidebar: shouldShowGroupSidebar, }),
     };
     if (selectedGroup) {
       newState.GroupListDetailStateData.selectedGroup = selectedGroup;
-      newState.GroupListDetailStateData.detailData = false;
+      newState.GroupListDetailStateData.detailData = null;
     }
     // console.log({ newState, });
     this.setState(newState);

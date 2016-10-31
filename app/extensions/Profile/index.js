@@ -42,8 +42,8 @@ class Profile extends Component {
     return (
       <View
         // onLayout={onLayoutUpdate.bind(this)}
-        style={[ styles.scrollViewWrapperContainer, styles.statusBarPadding, ]}>
-        <ScrollView style={{flex:1}} contentContainerStyle={ { paddingVertical: 20,position:'relative' }}>
+        style={[styles.stretchBox, styles.scrollViewWrapperContainer, styles.statusBarPadding, ]}>
+        <ScrollView style={styles.stretchBox } contentContainerStyle={ { paddingVertical: 20,position:'relative' }}>
           <Button
             title="Log out"
             onPress={() => {
@@ -52,7 +52,7 @@ class Profile extends Component {
             }}
             />
    
-        <Text>results_asyncstorage: {JSON.stringify(this.state.results_asyncstorage,null,2)}</Text>
+        <Text>results_asyncstorage2: {JSON.stringify(this.state.results_asyncstorage,null,2)}</Text>
         <Text>user_props: {JSON.stringify(this.state.user_props,null,2)}</Text>
         </ScrollView>
       </View>

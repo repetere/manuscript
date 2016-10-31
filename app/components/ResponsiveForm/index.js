@@ -423,12 +423,21 @@ function getFormDataTable(options) {
               name:'ios-arrow-dropup-outline',
             },
             onPress: (detailData, detailRowData, sectionId, rowId)=> {
-              // console.log('up',{ detailData, detailRowData, sectionId, rowId }, this.props);
-              if (rowId > 0) {                
+              // console.log('up',{ detailData, detailRowData, sectionId, rowId, formElement }, this.props);
+              if (rowId > 0) {
                 let newState = Object.assign({}, this.state);
-                let itemToMove = newState[ formElement.name ].splice(rowId, 1)[0];
-                // console.log({itemToMove})
-                newState[ formElement.name ].splice(rowId - 1, 0, itemToMove);
+                if (formElement.name.indexOf('.') !== -1) {
+                  let formElementNameArray = formElement.name.split('.');
+                  let itemToMove = newState[ formElementNameArray[0] ][ formElementNameArray[1] ].splice(parseInt(rowId), 1)[0];
+                  // console.log({itemToMove})
+                  newState[ formElementNameArray[0] ][ formElementNameArray[1] ].splice(parseInt(rowId) - 1, 0, itemToMove);
+                  // newState.formDataTables[ formElement.name ] = {};
+                  
+                } else {
+                  let itemToMove = newState[ formElement.name ].splice(parseInt(rowId), 1)[0];
+                  // console.log({itemToMove})
+                  newState[ formElement.name ].splice(parseInt(rowId) - 1, 0, itemToMove);
+                }
                 newState.formDataTables[ formElement.name ] = {};
                 this.setState(newState);
               }
@@ -443,14 +452,23 @@ function getFormDataTable(options) {
             },
             onPress: (detailData, detailRowData, sectionId, rowId) => {
               // console.log('down',this.state[ formElement.name ].length,{ detailData, detailRowData, sectionId, rowId }, this.props);
-              if (rowId < (this.state[ formElement.name ].length -1)) {                
-                let newState = Object.assign({}, this.state);
-                let itemToMove = newState[ formElement.name ].splice(rowId, 1)[0];
+              // console.log('down',{ detailData, detailRowData, sectionId, rowId: parseInt(rowId), formElement }, this.props);
+
+              // if (parseInt(rowId) < (this.state[ formElement.name ].length -1)) {                
+              let newState = Object.assign({}, this.state);
+              if (formElement.name.indexOf('.') !== -1) { 
+                let formElementNameArray = formElement.name.split('.');
+                let itemToMove = newState[ formElementNameArray[0] ][ formElementNameArray[1] ].splice(parseInt(rowId), 1)[0];
                 // console.log({itemToMove})
-                newState[ formElement.name ].splice(rowId + 1, 0, itemToMove);
-                newState.formDataTables[ formElement.name ] = {};
-                this.setState(newState);
+                newState[ formElementNameArray[0] ][ formElementNameArray[1] ].splice(parseInt(rowId) + 1, 0, itemToMove);
+              } else {
+                let itemToMove = newState[ formElement.name ].splice(parseInt(rowId), 1)[0];
+                // console.log({itemToMove})
+                newState[ formElement.name ].splice(parseInt(rowId) + 1, 0, itemToMove);
               }
+              newState.formDataTables[ formElement.name ] = {};
+              this.setState(newState);
+              // }
               // else {
               //   console.log('already at end of list')
               // }
@@ -466,7 +484,13 @@ function getFormDataTable(options) {
             onPress: (detailData, detailRowData, sectionId, rowId) => {
               // console.log('remove',{ detailData, detailRowData, sectionId, rowId }, 'this.state', this.state);
               let newState = Object.assign({}, this.state);
-              newState[ formElement.name ].splice(rowId, 1);
+              if (formElement.name.indexOf('.') !== -1) {
+                let formElementNameArray = formElement.name.split('.');
+                newState[ formElementNameArray[0] ][ formElementNameArray[1] ].splice(parseInt(rowId), 1);
+                // console.log({itemToMove})
+              } else {
+                newState[ formElement.name ].splice(rowId, 1);
+              }
               newState.formDataTables[ formElement.name ] = {};
               this.setState(newState);
             },
@@ -536,6 +560,7 @@ function getFormDataTable(options) {
           buttonStyle={{ borderRadius:5, width:200, height:20, }}
           label="Add"
           onPress={() => {
+            console.log('adding props')
             let newState = Object.assign({}, this.state);
             if (!Array.isArray(newState[ formElement.name ])) {
               newState[ formElement.name ] = [];
@@ -610,6 +635,7 @@ class ResponsiveForm extends Component {
     // console.log('remove prop form state', { value, attribute, arrayToSet, removedItem, });
   }
   addSingleItemProp(options) {
+    console.log('addSingleItemProp');
     let { value, attribute, } = options;
     let attrArray = attribute.split('.');
     if (!this.state[ attrArray[ 0 ] ]) {
@@ -623,6 +649,7 @@ class ResponsiveForm extends Component {
     // console.log('remove prop form state', { value, attribute, arrayToSet, removedItem, });
   }
   setFormSingleProp(options) {
+    console.log('setFormSingleProp');
     let { value, attribute, } = options;
     let updatedStateProp = {};
     // console.log('setFormSingleProp prop form state', { value, attribute, }, 'this.state.formDataLists', this.state.formDataLists);
