@@ -39,7 +39,7 @@ function getDataListStateFromProps(props) {
 }
 
 function getPropertyAttribute(options) {
-  let { property, element } = options;
+  let { property, element, } = options;
   let attribute = element.name;
   let selector = element.idSelector;
   // console.log({ options });
@@ -61,7 +61,9 @@ function getPropertyAttribute(options) {
 function getFormTextInputArea(options) {
   let { formElement, i, formgroup, width, onChangeText, } = options;
   // console.log(this.state, { formElement })
-  let initialValue = formElement.value || this.state[ formElement.name ];
+  // let initialValue = formElement.value || this.state[ formElement.name ];
+  let initialValue = formElement.value || this.state[ formElement.name ] || getPropertyAttribute({ element:formElement, property:this.state, });
+
   if (typeof initialValue !== 'string') {
     initialValue = JSON.stringify(initialValue, null, 2);
   }
@@ -117,6 +119,8 @@ function getFormCheckbox(options) {
 
 function getFormSelect(options) {
   let { formElement, i, formgroup, width, onValueChange, onSelect, } = options;
+  let initialValue = formElement.value || this.state[ formElement.name ] || getPropertyAttribute({ element:formElement, property:this.state, });
+
   if (!onValueChange) {
     onValueChange = (value) => {
       let updatedStateProp = {};
@@ -143,7 +147,7 @@ function getFormSelect(options) {
     {(Platform.OS === 'web') ? (
       <Picker 
         style={{ backgroundColor:'white', }}
-        selectedValue={formElement.value}
+        selectedValue={initialValue}
         onValueChange={onValueChange}>
         {formElement.options.map(option => {
           return (<Picker.Item label={option.label} value={option.value} />);
@@ -152,7 +156,7 @@ function getFormSelect(options) {
     ) : (
         <ModalDropdown 
           onSelect={onSelect}
-          defaultValue={this.state[formElement.name] || formElement.value}
+          defaultValue={initialValue}
           style={{
             height: 40, borderColor: 'lightgrey', borderWidth: 1, justifyContent: 'center', borderRadius: 3, backgroundColor:'white',
             padding:5,
@@ -524,10 +528,21 @@ function getFormDataTable(options) {
               width,
               onChangeText: (text) => {
                 let updatedStateProp = Object.assign({}, this.state.formDataTables);
-                updatedStateProp[ formElement.name ] = Object.assign({}, updatedStateProp[ formElement.name ], {
-                  [ newItem.name ]: text,
-                });
-                this.setState({ formDataTables: updatedStateProp, });
+
+                if (formElement.name.indexOf('.') !== -1) {
+                  let formElementNameArray = formElement.name.split('.');
+                  // newState[ formElementNameArray[0] ][ formElementNameArray[1] ].push(this.state.formDataTables[ formElement.name ]);
+                  updatedStateProp[ formElement.name ] = Object.assign({}, updatedStateProp[ formElement.name ], {
+                    [ newItem.name ]: text,
+                  });
+                  this.setState({ formDataTables: updatedStateProp, });
+                } else {
+                  updatedStateProp[ formElement.name ] = Object.assign({}, updatedStateProp[ formElement.name ], {
+                    [ newItem.name ]: text,
+                  });
+                  this.setState({ formDataTables: updatedStateProp, });
+                }  
+
               },
             });
           } else if (newItem.type === 'select') {
@@ -560,12 +575,21 @@ function getFormDataTable(options) {
           buttonStyle={{ borderRadius:5, width:200, height:20, }}
           label="Add"
           onPress={() => {
-            console.log('adding props')
+            // console.log('adding props');
             let newState = Object.assign({}, this.state);
-            if (!Array.isArray(newState[ formElement.name ])) {
-              newState[ formElement.name ] = [];
-            }
-            newState[ formElement.name ].push(this.state.formDataTables[ formElement.name ]);
+
+            if (formElement.name.indexOf('.') !== -1) {
+              let formElementNameArray = formElement.name.split('.');
+              if (!Array.isArray(newState[ formElementNameArray[0] ][ formElementNameArray[1] ])) {
+                newState[ formElementNameArray[0] ][ formElementNameArray[1] ] = [];
+              }
+              newState[ formElementNameArray[0] ][ formElementNameArray[1] ].push(this.state.formDataTables[ formElement.name ]);
+            } else {
+              if (!Array.isArray(newState[ formElement.name ])) {
+                newState[ formElement.name ] = [];
+              }
+              newState[ formElement.name ].push(this.state.formDataTables[ formElement.name ]);
+            }          
             newState.formDataTables[ formElement.name ] = {};
             this.setState(newState);
             // console.log('add row',this.state);

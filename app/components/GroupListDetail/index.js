@@ -463,7 +463,7 @@ class GroupDetail extends Component{
     // let errorView = (<LoadingView/>);
     // console.log({ CustomDetailComponent });
 
-    if (this.props.GroupListDetail.detail && this.props.GroupListDetail.detail.detailComponent && this.state.detailData && this.props.GroupListDetailStateData.detailData!==false){
+    if (this.props.GroupListDetail.detail && this.props.GroupListDetail.detail.detailComponent && this.state.detailData && (this.props.GroupListDetailStateData.detailData!==false && this.props.GroupListDetailStateData.detailData!==null)){
       let CustomDetailComponent = this.props.GroupListDetail.detail.detailComponent;
       return <CustomDetailComponent {...this.state} {...this.props}/>;     
     } else {
