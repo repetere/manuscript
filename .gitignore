@@ -41,7 +41,7 @@ android/*
 # Optional REPL history
 .node_repl_history
 !node_modules/react-web
-
+content/config/runtime.json
 
 # gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
 
