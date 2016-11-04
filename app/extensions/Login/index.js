@@ -28,52 +28,56 @@ import {
 } from 'react-native-elements';
 import LoginSettings from '../../../content/config/login.json';
 import AppSettings from '../../../content/config/settings.json';
-
+let loginStyles;
 // http://browniefed.com/blog/react-native-layout-examples/
 // https://medium.com/the-react-native-log/understanding-react-native-flexbox-layout-7a528200afd4#.noes46i4m
 // https://css-tricks.com/snippets/css/a-guide-to-flexbox/
 
-var loginStyles = StyleSheet.create(Object.assign({
-  container: {
-    flex: 1,
-    alignSelf: 'stretch',
-    flexDirection: 'column',
-    // paddingTop: 20,
-  },
-  halfHeight: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    flex: 2,
-  },
-  quarterHeight: {
-    flex: 1,
-  },
-  appNameBackground: {
-    backgroundColor:'steelblue',
-  },
-  formBackground: {
-    backgroundColor:'aliceblue',
-  },
-  formGroup: {
-    flex:1,
-  },
-}, LoginSettings.login_extension.styles));
+
 
 
 class Login extends Component {
-  constructor(){
-    super(...arguments);
+  constructor(props){
+    super(props);
+    console.log('LOGIN', { props });
+    console.log('props.pages.runtime.environment',props.page.runtime.environment)
+    loginStyles = StyleSheet.create(Object.assign({
+      container: {
+        flex: 1,
+        alignSelf: 'stretch',
+        flexDirection: 'column',
+        // paddingTop: 20,
+      },
+      halfHeight: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        flex: 2,
+      },
+      quarterHeight: {
+        flex: 1,
+      },
+      appNameBackground: {
+        backgroundColor:'steelblue',
+      },
+      formBackground: {
+        backgroundColor:'aliceblue',
+      },
+      formGroup: {
+        flex:1,
+      },
+    }, LoginSettings[props.page.runtime.environment].login_extension.styles));
   }
   sendFormToLogin(eventMethod) {
     console.log('sendFormToLogin',{ eventMethod, }, 'this.refs', this.refs);
   }
   
   render() {
+    
     // console.log('LOGIN this.props',this.props);
     return (
       <View style={[loginStyles.container, { flexDirection: 'column', justifyContent: 'center', }]}>
         <View style={[ loginStyles.halfHeight, loginStyles.appNameBackground, ]}>
-          <Image source={require('../../../content/theme/images/icons/logo.png')} style={LoginSettings.login_extension.logo_dimensions}/>  
+          <Image source={require('../../../content/theme/images/icons/logo.png')} style={LoginSettings[this.props.page.runtime.environment].login_extension.logo_dimensions}/>  
           <Text>{AppSettings.name}</Text>
         </View>
         <View style={[ loginStyles.halfHeight, loginStyles.formBackground, { alignItems: 'center', justifyContent: 'center', }]}>

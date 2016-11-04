@@ -163,16 +163,17 @@ const user = {
   */
   loginUser(loginData,responseFormatter) {
     return (dispatch, getState) => {
+      console.log(getState() );
       let fetchResponse;
       let cachedResponseData;
-      let url = LoginSettings.login.url;
+      let url = LoginSettings[getState().page.runtime.environment].login.url;
       dispatch(this.loginRequest(url));
       fetch(url, {
-        method: LoginSettings.login.method || 'POST',
+        method: LoginSettings[getState().page.runtime.environment].login.method || 'POST',
         headers: Object.assign({
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-        }, LoginSettings.login.options.headers, {
+        }, LoginSettings[getState().page.runtime.environment].login.options.headers, {
           username: loginData.username,
           password: loginData.password,
         }),

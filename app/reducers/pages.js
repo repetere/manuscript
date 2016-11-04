@@ -1,5 +1,6 @@
 import constants from '../constants';
 import customSettings from '../../content/config/settings.json';
+import runtimeSettings from '../../content/config/runtime.json';
 // import Immutable from 'immutable';
 
 const initialState = {
@@ -7,6 +8,7 @@ const initialState = {
   initial_app_state_loaded: false,
   layout: {},
   layoutRenderDate: null,
+  runtime: runtimeSettings,
 };
 
 const pageReducer = (state = initialState, action) => {
@@ -18,9 +20,17 @@ const pageReducer = (state = initialState, action) => {
     var layout = action.payload.layout;
     return Object.assign(state, { layout, layoutRenderDate:new Date()});
   case constants.pages.INITIAL_APP_LOADED:
-    return { location: action.payload.location || customSettings.defaultExtensionRoute ||state.location, initial_app_state_loaded:true, };
+    return {
+      location: action.payload.location || customSettings.defaultExtensionRoute || state.location,
+      initial_app_state_loaded: true,
+      runtime: runtimeSettings,
+    };
   case constants.pages.RESET_APP_LOADED:
-    return { location:state.location, initial_app_state_loaded:false, };
+    return {
+      location: state.location,
+      initial_app_state_loaded: false,
+      runtime: runtimeSettings,
+    };
   default:
     return state;
   }
