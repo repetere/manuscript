@@ -1,6 +1,6 @@
 {
   "name": "manuscriptjs",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start"
   },
