@@ -129,9 +129,9 @@ class MainApp extends Component{
         let jwt_token_data = JSON.parse(results[ 1 ]);
         let jwt_user_profile = JSON.parse(results[ 2 ]);
         let appTabs = (results[ 3 ]) ? JSON.parse(results[ 3 ]) : false;
-        console.log('main apptabs',{ appTabs });
+        // console.log('main apptabs',{ appTabs });
         if (jwt_token_data && jwt_user_profile) {
-          let url = AppLoginSettings.login.url;
+          let url = AppLoginSettings[this.props.page.runtime.environment].login.url;
           let response = {};
           let json = {
             token: jwt_token_data.token,
@@ -153,15 +153,12 @@ class MainApp extends Component{
               this.props.setTabExtensions(appTabs);
             }
           }
-        } else if(jwt_token) {
+        } else if (jwt_token) {
           this.props.getUserProfile(jwt_token);
         }
         else {
           console.log('MAIN componentDidMount USER IS NOT LOGGED IN');
-        }
-        // this.setState({
-        //   jwt_token,
-        // });        
+        }      
         this.props.initialAppLoaded();
       })
       .catch((error) => {

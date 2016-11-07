@@ -818,22 +818,22 @@ class GroupListDetail extends Component {
 }
 
 export function getGroupFromEntityName(entityName, groupName, options) {
-  let { constants, } = options;
+  let { constants, environment, } = options;
   return {
     entityName: capitalize(entityName), //'Engine',
-    fetchUrl:constants[pluralize(groupName)/*pipelines*/].all.BASE_URL+constants[pluralize(groupName)/*pipelines*/][pluralize(entityName)/* `engines`*/].GET_INDEX,
+    fetchUrl:constants[pluralize(groupName)/*pipelines*/].all.environment[environment.environment].BASE_URL+constants[pluralize(groupName)/*pipelines*/][pluralize(entityName)/* `engines`*/].GET_INDEX,
     listProps: {
       pagesProp:`${entityName}pages`, //enginepages,
       dataProp: pluralize(entityName), //'engines',
-      countProp: `${pluralize(entityName)}count`,//'enginescount',
+      countProp: `${pluralize(entityName)}count`, //'enginescount',
     },
   };
 }
 
 export function getListFromEntityName(entityName, groupName, options) {
-  let { constants, } = options;
+  let { constants, environment, } = options;
   return {
-    fetchUrl: constants[pluralize(groupName)].all.BASE_URL + constants[pluralize(groupName)][pluralize(entityName)].GET_INDEX,
+    fetchUrl: constants[pluralize(groupName)].all.environment[environment.environment].BASE_URL + constants[pluralize(groupName)][pluralize(entityName)].GET_INDEX,
     listProps: {
       pagesProp:`${options.listPropsEntityName || entityName}pages`, //enginepages,
       dataProp: pluralize(options.listPropsEntityName || entityName), //'engines',
@@ -864,9 +864,9 @@ export function getListFromEntityName(entityName, groupName, options) {
 }
 
 export function getDetailFromEntityName(entityName, groupName, options) {
-  let { constants, } = options;
+  let { constants, environment, } = options;
   return {
-    fetchUrl: constants[pluralize(groupName)].all.BASE_URL + constants[pluralize(groupName)][pluralize(entityName)].GET_INDEX,
+    fetchUrl: constants[pluralize(groupName)].all.environment[environment.environment].BASE_URL + constants[pluralize(groupName)][pluralize(entityName)].GET_INDEX,
     detailComponent: options.detailComponent,
     detailExtensionRoute: `/${pluralize(groupName)}/${pluralize(entityName)}/:id`,
     actions: [{

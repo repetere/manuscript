@@ -104,7 +104,7 @@ const user = {
         AsyncStorage.removeItem(constants.pages.ASYNCSTORAGE_KEY),
       ])
         .then(results => {
-          console.log('logout user results', results);
+          // console.log('logout user results', results);
           dispatch(this.logoutUserSuccess());
           dispatch(pageActions.initialAppLoaded());
         })
@@ -115,16 +115,16 @@ const user = {
     };
   },
   getUserProfile(jwt_token, responseFormatter) {
-    return (dispatch) => {
+    return (dispatch, getState) => {
       let fetchResponse;
-      let url = LoginSettings.userprofile.url;
+      let url = LoginSettings[ getState().page.runtime.environment ].userprofile.url;
       dispatch(this.loginRequest(url));
       fetch(url, {
-        method: LoginSettings.userprofile.method || 'POST',
+        method: LoginSettings[getState().page.runtime.environment].userprofile.method || 'POST',
         headers: Object.assign({
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-        }, LoginSettings.userprofile.options.headers, {
+        }, LoginSettings[getState().page.runtime.environment].userprofile.options.headers, {
           'x-access-token': jwt_token,
         }),
         // body: JSON.stringify({
@@ -147,7 +147,6 @@ const user = {
           }
         })
         .then((responseData) => {
-          console.log('getUserProfile responseData', responseData);
           AsyncStorage.setItem(constants.jwt_token.PROFILE_JSON, JSON.stringify(responseData.user));
           dispatch(this.saveUserProfile(url, fetchResponse, responseData));
         })
@@ -161,9 +160,8 @@ const user = {
   * @param {object} options what-wg fetch options
   * @param {function} responseFormatter custom reponse formatter, must be a function that returns a promise that resolves to json/javascript object
   */
-  loginUser(loginData,responseFormatter) {
+  loginUser(loginData, responseFormatter) {
     return (dispatch, getState) => {
-      console.log(getState() );
       let fetchResponse;
       let cachedResponseData;
       let url = LoginSettings[getState().page.runtime.environment].login.url;
@@ -207,7 +205,7 @@ const user = {
             })),
             AsyncStorage.setItem(constants.jwt_token.PROFILE_JSON, JSON.stringify(responseData.user)),
           ]);
-          console.log('login USER responseData',responseData)
+          // console.log('login USER responseData', responseData);
         })
         .then(() => {
           dispatch(this.recievedLoginUser(url, fetchResponse, cachedResponseData));
